@@ -1,0 +1,6 @@
+[variables]
+PRISMA_CLI_QUERY_ENGINE_TYPE = "binary"
+
+[phases.setup]
+nixPkgs = ["openssl", "pkg-config"]
+
