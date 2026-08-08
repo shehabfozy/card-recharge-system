@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      String   @default("admin") // admin, agent
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Agent {
+  id          Int           @id @default(autoincrement())
+  name        String
+  phone       String        @unique
+  balance     Float         @default(0)
+  commission  Float         @default(10) // نسبة العمولة %
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  price     Float
+  dataSize  Int      @map("data_size") // بالميجا
+  hours     Int
+  days      Int      // صلاحية بالأيام
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  cards     Card[]
+}
+
+model Card {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  categoryId  Int       @map("category_id")
+  category    Category  @relation(fields: [categoryId], references: [id])
+  status      String    @default("available") // available, sold
+  soldTo      String?   @map("sold_to")
+  agentId     Int?      @map("agent_id")
+  agent       Agent?    @relation(fields: [agentId], references: [id])
+  soldAt      DateTime? @map("sold_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  transaction Transaction?
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  cardId      Int      @unique @map("card_id")
+  card        Card     @relation(fields: [cardId], references: [id])
+  agentId     Int      @map("agent_id")
+  agent       Agent    @relation(fields: [agentId], references: [id])
+  phone       String   // رقم الزبون
+  price       Float    // السعر
+  commission  Float    // عمولة الوكيل
+  netAmount   Float    @map("net_amount") // المبلغ الصافي للنظام
+  createdAt   DateTime @default(now()) @map("created_at")
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  action    String
+  details   String?
+  userId    Int?     @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+}
